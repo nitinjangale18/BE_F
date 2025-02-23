@@ -4,11 +4,9 @@ import bodyParser from 'body-parser';
 import Connection from './database/db.js';
 import DefaultData from './default.js';
 import Router from './routes/route.js';
-import { v4 as uuid } from 'uuid';
-import Razorpay from "razorpay";
 import cors from 'cors';
 
-// ** Load dotenv first! **
+// Load environment variables
 dotenv.config();
 
 console.log("RAZORPAY_KEY:", process.env.RAZORPAY_KEY);
@@ -16,30 +14,31 @@ console.log("RAZORPAY_SECRET:", process.env.RAZORPAY_SECRET);
 
 const app = express();
 
-// ** Initialize Razorpay AFTER loading dotenv **
-
-
+// Middleware
 app.use(bodyParser.json({ extended: true }));
 app.use(bodyParser.urlencoded({ extended: true }));
-
 app.use(cors());
+
+// API Routes
 app.use('/', Router);
 
-const PORT = process.env.PORT || 8000;
+// Root route to avoid 'Cannot GET /'
+app.get("/", (req, res) => {
+    res.send("API is running...");
+});
 
+const PORT = process.env.PORT || 8000;
 const USERNAME = process.env.DB_USERNAME;
 const PASSWORD = process.env.DB_PASSWORD;
+const URL = process.env.MONGODB_URL || `mongodb+srv://${USERNAME}:${PASSWORD}@cluster0.fpg3i.mongodb.net/myreceipe`;
 
-const URL=process.env.MONGODB_URL || "mongodb+srv://${USERNAME}:${PASSWORD}@cluster0.fpg3i.mongodb.net/myreceipe" ;
-
+// Database connection
 Connection(URL);
 
-if(process.env.NODE_ENV==='PRODUCTION'){
-    app.use(express.static('client/build'))
-}
-
+// Start server
 app.listen(PORT, () => {
     console.log(`Server running at port ${PORT}`);
 });
 
+// Load default data
 DefaultData();
